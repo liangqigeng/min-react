@@ -20,6 +20,7 @@ function createElement(type, props, ...children) {
     };
 }
 
+let root = null;
 let nextWorkOfUnit = null;
 function workLoop(dealline) {
     let shouldYield = false;
@@ -28,7 +29,21 @@ function workLoop(dealline) {
 
         shouldYield = dealline.timeRemaining() < 1;
     }
+    if(!nextWorkOfUnit && root) {
+        commitRoot();
+    }
     requestIdleCallback(workLoop);
+}
+
+function commitRoot() {
+    commitWork(root.child);
+    root = null;
+}
+
+function commitWork(fiber) {
+    if(!fiber) return;
+    commitWork(fiber.child);
+    commitWork(fiber.sibling);
 }
 
 requestIdleCallback(workLoop);
@@ -95,6 +110,7 @@ function render(el, container) {
             children: [el],
         }
     };
+    root = nextWorkOfUnit
 }
 
 const React = {
